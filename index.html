@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>GitHub Table</title>
+    <script>
+        // Function to add a row to the table
+        function addRow() {
+            const table = document.getElementById('dataTable');
+            const row = table.insertRow();
+            const cell1 = row.insertCell(0);
+            const cell2 = row.insertCell(1);
+            cell1.innerHTML = '<input type="text" name="name">';
+            cell2.innerHTML = '<input type="text" name="value">';
+        }
+
+        // Function to remove the last row from the table
+        function removeRow() {
+            const table = document.getElementById('dataTable');
+            if (table.rows.length > 1) {
+                table.deleteRow(-1);
+            }
+        }
+
+        // Function to save table data to XML
+        function saveToXML() {
+            const table = document.getElementById('dataTable');
+            let xml = '<data>';
+            for (let i = 1; i < table.rows.length; i++) {
+                const cells = table.rows[i].cells;
+                xml += `<entry><name>${cells[0].children[0].value}</name><value>${cells[1].children[0].value}</value></entry>`;
+            }
+            xml += '</data>';
+            // Save xml to a file or send to server
+            console.log(xml);
+        }
+
+        // Function to load data from XML
+        function loadFromXML(xmlString) {
+            const parser = new DOMParser();
+            const xmlDoc = parser.parseFromString(xmlString, "text/xml");
+            const entries = xmlDoc.getElementsByTagName('entry');
+            const table = document.getElementById('dataTable');
+            for (let i = 0; i < entries.length; i++) {
+                const row = table.insertRow();
+                const cell1 = row.insertCell(0);
+                const cell2 = row.insertCell(1);
+                cell1.innerHTML = `<input type="text" name="name" value="${entries[i].getElementsByTagName('name')[0].childNodes[0].nodeValue}">`;
+                cell2.innerHTML = `<input type="text" name="value" value="${entries[i].getElementsByTagName('value')[0].childNodes[0].nodeValue}">`;
+            }
+        }
+    </script>
+</head>
+<body>
+    <h1>GitHub Table</h1>
+    <table id="dataTable" border="1">
+        <tr>
+            <th>Name</th>
+            <th>Value</th>
+        </tr>
+    </table>
+    <button onclick="addRow()">Add Row</button>
+    <button onclick="removeRow()">Remove Row</button>
+    <button onclick="saveToXML()">Save to XML</button>
+    <button onclick="loadFromXML('<data><entry><name>Example</name><value>123</value></entry></data>')">Load from XML</button>
+</body>
+</html>
