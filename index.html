@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>دليل استكشاف الأخطاء وإصلاحها لمكتب المساعدة التقني</title>
+    <title>النوتة المصرية</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap');
@@ -60,7 +60,7 @@
 </head>
 <body class="bg-gray-100 p-4 sm:p-8">
     <div class="max-w-4xl mx-auto bg-white p-6 rounded-lg shadow-lg">
-        <h1 class="text-3xl font-bold mb-6 text-gray-800">دليل استكشاف الأخطاء وإصلاحها لتكنولوجيا المعلومات</h1>
+        <center><h3 class="text-3xl font-bold mb-6 text-gray-800">النوتة المصرية : صنعت بواسطة محمد جمعة</h3></center>
         
         <!-- إضافة التنقل بين المجموعات -->
         <div id="groupNavigation" class="mb-6 flex flex-wrap gap-2">
@@ -81,8 +81,8 @@
             <button onclick="deleteCurrentGroup()" class="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition duration-300 ease-in-out">حذف المجموعة الحالية</button>
         </div>
         <div class="flex flex-wrap gap-4 mt-4">
-            <button onclick="loadFromClipboard()" class="bg-purple-500 text-white px-4 py-2 rounded-lg hover:bg-purple-600 transition duration-300 ease-in-out">تحميل من الحافظة</button>
-            <button onclick="saveToClipboard()" class="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition duration-300 ease-in-out">حفظ إلى الحافظة</button>
+            <button onclick="loadFromXMLFile()" class="bg-purple-500 text-white px-4 py-2 rounded-lg hover:bg-purple-600 transition duration-300 ease-in-out">تحميل من ملف XML</button>
+            <button onclick="saveToXMLFile()" class="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition duration-300 ease-in-out">استخراج إلى ملف XML</button>
         </div>
 
         <div class="mt-8">
@@ -110,45 +110,6 @@
         <button class="color-btn" style="background-color: yellow;" onclick="applyStyle('color', 'yellow')"></button>
     </div>
     <script>
-        document.addEventListener('mouseup', showStylePopup);
-        document.addEventListener('mousedown', hideStylePopup);
-
-        function showStylePopup(event) {
-            const selection = window.getSelection();
-            if (selection.toString().length > 0) {
-                const range = selection.getRangeAt(0);
-                const rect = range.getBoundingClientRect();
-                const popup = document.getElementById('stylePopup');
-                popup.style.left = `${rect.left + window.scrollX}px`;
-                popup.style.top = `${rect.top + window.scrollY - popup.offsetHeight}px`;
-                popup.style.display = 'block';
-            }
-        }
-
-        function hideStylePopup(event) {
-            if (!event.target.closest('#stylePopup')) {
-                document.getElementById('stylePopup').style.display = 'none';
-            }
-        }
-
-        function applyStyle(style, value) {
-            const selection = window.getSelection();
-            if (selection.rangeCount > 0) {
-                const range = selection.getRangeAt(0);
-                const span = document.createElement('span');
-                if (style === 'bold') {
-                    span.style.fontWeight = 'bold';
-                } else if (style === 'color') {
-                    span.style.color = value;
-                }
-                span.appendChild(range.extractContents());
-                range.insertNode(span);
-                selection.removeAllRanges();
-                document.getElementById('stylePopup').style.display = 'none';
-                updateXML();
-            }
-        }
-
         let groupCount = 0;
 
         function addGroup(title = "") {
@@ -199,15 +160,18 @@
         function addSection(groupId, title = "") {
             const sectionHtml = `
                 <section class="border-t border-gray-200 pt-4">
-                    <div class="section-divider"></div> <!-- خط فاصل أحمر -->
+                    <div class="section-divider"></div>
                     <div class="flex justify-between items-center mb-4">
                         <input type="text" class="text-xl font-semibold w-full bg-transparent border-b border-gray-300 focus:border-blue-500 outline-none text-right" placeholder="عنوان القسم" value="${title}" onchange="updateXML()">
+                        <button onclick="toggleSection(this)" class="text-blue-500 hover:text-blue-700 ml-2">+</button>
                         <button onclick="removeSection(this)" class="text-red-500 hover:text-red-700 ml-2">×</button>
                     </div>
-                    <ol class="list-decimal pr-6 space-y-4">
-                        <!-- Steps will be dynamically added here -->
-                    </ol>
-                    <button onclick="addStep(this)" class="mt-4 bg-gray-200 text-gray-800 px-3 py-1 rounded-lg hover:bg-gray-300 transition duration-300 ease-in-out">إضافة خطوة</button>
+                    <div class="section-content hidden">
+                        <ol class="list-decimal pr-6 space-y-4">
+                            <!-- Steps will be dynamically added here -->
+                        </ol>
+                        <button onclick="addStep(this)" class="mt-4 bg-gray-200 text-gray-800 px-3 py-1 rounded-lg hover:bg-gray-300 transition duration-300 ease-in-out">إضافة خطوة</button>
+                    </div>
                 </section>
             `;
             document.querySelector(`#${groupId} .sections`).insertAdjacentHTML('beforeend', sectionHtml);
@@ -218,29 +182,34 @@
                 <li class="group">
                     <div class="flex items-center mb-2">
                         <button onclick="removeStep(this)" class="text-red-500 hover:text-red-700 ml-2 opacity-0 group-hover:opacity-100 transition duration-300 ease-in-out">×</button>
-                        <input type="text" class="w-full bg-transparent border-b border-gray-300 focus:border-blue-500 outline-none text-right" placeholder="وصف الخطوة" value="${description}" onchange="updateXML()">
-                        <button onclick="toggleStepButtons(this)" class="text-blue-500 hover:text-blue-700 mr-2">-</button>
+                        <textarea class="w-full bg-transparent border-b border-gray-300 focus:border-blue-500 outline-none text-right resize-none overflow-hidden" placeholder="وصف الخطوة" oninput="this.style.height = 'auto'; this.style.height = this.scrollHeight + 'px';" onchange="updateXML()">${description}</textarea>
+                        <button onclick="toggleStepButtons(this)" class="text-blue-500 hover:text-blue-700 mr-2">+</button>
                     </div>
-                    <div class="step-buttons flex space-x-2 mb-2">
+                    <div class="step-buttons flex space-x-2 mb-2 hidden">
                         <button onclick="addLink(this)" class="bg-blue-500 text-white text-xs px-2 py-1 rounded hover:bg-blue-600 transition duration-300 ease-in-out">إضافة رابط</button>
                         <button onclick="addCodeBlock(this)" class="bg-green-500 text-white text-xs px-2 py-1 rounded hover:bg-green-600 transition duration-300 ease-in-out">إضافة كود</button>
                         <button onclick="addCommand(this)" class="bg-yellow-500 text-white text-xs px-2 py-1 rounded hover:bg-yellow-600 transition duration-300 ease-in-out">إضافة أمر</button>
-                        <button onclick="editStepDescription(this)" class="bg-purple-500 text-white text-xs px-2 py-1 rounded hover:bg-purple-600 transition duration-300 ease-in-out">تعديل الوصف</button>
-                        <button onclick="addImage(this)" class="bg-pink-500 text-white text-xs px-2 py-1 rounded hover:bg-pink-600 transition duration-300 ease-in-out">إضافة صورة</button>
+                        <button onclick="addImage(this)" class="bg-pink-500 text-white text-xs px-2 py-1 rounded hover:bg-pink-600 transition duration-300 ease-in-out">إضافة صورة من على الانترنت</button>
+                        <button onclick="browseFile(this)" class="bg-purple-500 text-white text-xs px-2 py-1 rounded hover:bg-purple-600 transition duration-300 ease-in-out">إضافة صورة من الجهاز</button>
                     </div>
                     ${link ? `<div class="link-box bg-blue-100 p-2 rounded-lg mb-2">
-                        <a href="${link}" target="_blank" class="text-blue-600 hover:underline">${link}</a>
+                        <a href="${link}" target="_blank" class="text-blue-600 hover:underline break-words">
+                            <span class="inline-block max-w-full">${link}</span>
+                        </a>
                         <button onclick="removeLink(this)" class="text-red-500 hover:text-red-700 ml-2">×</button>
                     </div>` : ''}
                     ${codeBlock ? `<div class="code-block bg-gray-100 p-2 rounded-lg mb-2">
-                        <pre><code dir="ltr" class="block text-left">${formatCode(codeBlock)}</code></pre>
-                        <button onclick="removeCodeBlock(this)" class="text-red-500 hover:text-red-700 mt-2">إزالة الكود</button>
+                        <textarea dir="ltr" class="w-full h-32 p-2 bg-gray-800 text-white font-mono text-sm resize-y" oninput="this.style.height = 'auto'; this.style.height = (this.scrollHeight + 5) + 'px';">${escapeXML(codeBlock)}</textarea>
+                        <div class="mt-2 flex justify-between">
+                            <button onclick="copyCodeToClipboard(this)" class="bg-blue-500 text-white text-xs px-2 py-1 rounded hover:bg-blue-600 transition duration-300 ease-in-out">نسخ الكود</button>
+                            <button onclick="removeCodeBlock(this)" class="text-red-500 hover:text-red-700">إزالة الكود</button>
+                        </div>
                     </div>` : ''}
                     ${command ? `<div class="bg-gray-800 text-white p-2 rounded-lg relative command-box">
                         <div class="flex items-center">
                             <button class="bg-red-500 text-xs px-2 py-1 rounded hover:bg-red-600 transition duration-300 ease-in-out ml-1" onclick="removeCommandBox(this)">×</button>
                             <button class="bg-gray-700 text-xs px-2 py-1 rounded hover:bg-gray-600 transition duration-300 ease-in-out ml-1" onclick="copyToClipboard(this)">نسخ</button>
-                            <input type="text" class="flex-grow bg-transparent outline-none ltr text-left ml-2" placeholder="الأمر" value="${command}" onchange="updateXML()">
+                            <textarea class="flex-grow bg-transparent outline-none ltr text-left ml-2 resize-none overflow-hidden" placeholder="الأمر" oninput="this.style.height = 'auto'; this.style.height = this.scrollHeight + 'px';" onchange="updateXML()">${command}</textarea>
                         </div>
                     </div>` : ''}
                     ${imageUrl ? `<div class="image-box bg-gray-100 p-2 rounded-lg mb-2">
@@ -257,40 +226,44 @@
             if (link) {
                 const linkHtml = `
                     <div class="link-box bg-blue-100 p-2 rounded-lg mb-2">
-                        <a href="${link}" target="_blank" class="text-blue-600 hover:underline">${link}</a>
+                        <a href="${link}" target="_blank" class="text-blue-600 hover:underline break-words">
+                            <span class="inline-block max-w-full">${link}</span>
+                        </a>
                         <button onclick="removeLink(this)" class="text-red-500 hover:text-red-700 ml-2">×</button>
                     </div>
                 `;
                 button.closest('li').insertAdjacentHTML('beforeend', linkHtml);
+                updateXML();
             }
         }
 
         function addCodeBlock(button) {
             const code = prompt("أدخل الكود:");
             if (code) {
-                const formattedCode = formatCode(code);
                 const codeHtml = `
                     <div class="code-block bg-gray-100 p-2 rounded-lg mb-2">
-                        <pre><code dir="ltr" class="block text-left">${formattedCode}</code></pre>
-                        <button onclick="removeCodeBlock(this)" class="text-red-500 hover:text-red-700 mt-2">إزالة الكود</button>
+                        <textarea dir="ltr" class="w-full h-32 p-2 bg-gray-800 text-white font-mono text-sm resize-y" oninput="this.style.height = 'auto'; this.style.height = (this.scrollHeight + 5) + 'px';">${escapeXML(code)}</textarea>
+                        <div class="mt-2 flex justify-between">
+                            <button onclick="copyCodeToClipboard(this)" class="bg-blue-500 text-white text-xs px-2 py-1 rounded hover:bg-blue-600 transition duration-300 ease-in-out">نسخ الكود</button>
+                            <button onclick="removeCodeBlock(this)" class="text-red-500 hover:text-red-700">إزالة الكود</button>
+                        </div>
                     </div>
                 `;
                 button.closest('li').insertAdjacentHTML('beforeend', codeHtml);
+                updateXML();
             }
         }
 
-        function formatCode(code) {
-            // Split the code into lines
-            const lines = code.split('\n');
-            
-            // Process each line
-            const formattedLines = lines.map(line => {
-                // Trim leading and trailing whitespace
-                return line.trim();
+        function copyCodeToClipboard(button) {
+            const codeBlock = button.closest('.code-block');
+            const codeText = codeBlock.querySelector('textarea').value;
+            navigator.clipboard.writeText(codeText).then(() => {
+                const originalText = button.textContent;
+                button.textContent = 'تم النسخ!';
+                setTimeout(() => {
+                    button.textContent = originalText;
+                }, 2000);
             });
-            
-            // Join the lines back together
-            return formattedLines.join('\n');
         }
 
         function removeLink(button) {
@@ -315,7 +288,7 @@
 
         function copyToClipboard(button) {
             const commandBox = button.parentElement;
-            const textToCopy = commandBox.querySelector('input').value;
+            const textToCopy = commandBox.querySelector('textarea').value;
             navigator.clipboard.writeText(textToCopy).then(() => {
                 const originalText = button.textContent;
                 button.textContent = 'تم النسخ!';
@@ -336,7 +309,7 @@
         }
 
         function saveToClipboard() {
-            let xmlContent = '<?xml version="1.0" encoding="UTF-8"?>\n<troubleshooting_guide>\n';
+            let xmlContent = '<?xml version="1.0" encoding="UTF-8"?>\n<my_database>\n';
             
             document.querySelectorAll('#groups > div').forEach(group => {
                 const groupTitle = group.querySelector('input').value;
@@ -347,7 +320,7 @@
                     xmlContent += `    <section>\n      <title>${escapeXML(sectionTitle)}</title>\n`;
                     
                     section.querySelectorAll('ol > li').forEach(step => {
-                        const stepDescription = step.querySelector('input').value;
+                        const stepDescription = step.querySelector('textarea').value;
                         const commandBox = step.querySelector('.command-box');
                         const linkBox = step.querySelector('.link-box');
                         const codeBlock = step.querySelector('.code-block');
@@ -361,12 +334,12 @@
                         }
                         
                         if (codeBlock) {
-                            const code = codeBlock.querySelector('code').textContent;
+                            const code = codeBlock.querySelector('textarea').value;
                             xmlContent += `        <code_block>${escapeXML(code)}</code_block>\n`;
                         }
                         
                         if (commandBox) {
-                            const command = commandBox.querySelector('input').value;
+                            const command = commandBox.querySelector('textarea').value;
                             if (command) {
                                 xmlContent += `        <command>${escapeXML(command)}</command>\n`;
                             }
@@ -386,7 +359,7 @@
                 xmlContent += `  </group>\n`;
             });
             
-            xmlContent += '</troubleshooting_guide>';
+            xmlContent += '</my_database>';
             
             navigator.clipboard.writeText(xmlContent).then(() => {
                 alert("تم نسخ بيانات XML إلى الحافظة");
@@ -473,8 +446,8 @@
                 let sectionVisible = searchTerm === '' || sectionTitle.includes(searchTerm);
 
                 steps.forEach(step => {
-                    const stepDescription = step.querySelector('input').value.toLowerCase();
-                    const command = step.querySelector('.command-box input')?.value.toLowerCase() || '';
+                    const stepDescription = step.querySelector('textarea').value.toLowerCase();
+                    const command = step.querySelector('.command-box textarea')?.value.toLowerCase() || '';
                     const stepVisible = searchTerm === '' || 
                                         stepDescription.includes(searchTerm) || 
                                         command.includes(searchTerm);
@@ -504,7 +477,7 @@
                         <div class="flex items-center">
                             <button class="bg-red-500 text-xs px-2 py-1 rounded hover:bg-red-600 transition duration-300 ease-in-out ml-1" onclick="removeCommandBox(this)">×</button>
                             <button class="bg-gray-700 text-xs px-2 py-1 rounded hover:bg-gray-600 transition duration-300 ease-in-out ml-1" onclick="copyToClipboard(this)">نسخ</button>
-                            <input type="text" class="flex-grow bg-transparent outline-none ltr text-left ml-2" placeholder="الأمر" value="${command}" onchange="updateXML()">
+                            <textarea class="flex-grow bg-transparent outline-none ltr text-left ml-2 resize-none overflow-hidden" placeholder="الأمر" oninput="this.style.height = 'auto'; this.style.height = this.scrollHeight + 'px';" onchange="updateXML()">${command}</textarea>
                         </div>
                     </div>
                 `;
@@ -512,23 +485,24 @@
             }
         }
 
-        function editStepDescription(button) {
-            const stepElement = button.closest('li');
-            const descriptionInput = stepElement.querySelector('input[placeholder="وصف الخطوة"]');
-            const newDescription = prompt("تعديل وصف الخطوة:", descriptionInput.value);
-            if (newDescription !== null) {
-                descriptionInput.value = newDescription;
-                updateXML();
+        function toggleSection(button) {
+            const sectionContent = button.closest('section').querySelector('.section-content');
+            if (sectionContent.classList.contains('hidden')) {
+                sectionContent.classList.remove('hidden');
+                button.textContent = '-';
+            } else {
+                sectionContent.classList.add('hidden');
+                button.textContent = '+';
             }
         }
 
         function toggleStepButtons(button) {
             const stepButtons = button.closest('li').querySelector('.step-buttons');
-            if (stepButtons.style.display === 'none') {
-                stepButtons.style.display = 'flex';
+            if (stepButtons.classList.contains('hidden')) {
+                stepButtons.classList.remove('hidden');
                 button.textContent = '-';
             } else {
-                stepButtons.style.display = 'none';
+                stepButtons.classList.add('hidden');
                 button.textContent = '+';
             }
         }
@@ -610,14 +584,18 @@
         }
 
         async function saveToSpecificGist() {
+            if (!confirm("هل أنت متأكد من أنك تريد التحميل إلى السيرفر؟")) {
+                return; // إذا ضغط المستخدم على "إلغاء"، نخرج من الوظيفة
+            }
+
             const credentials = getCredentials();
             if (!credentials) return;
 
             const { gistId, personalKey } = credentials;
 
             const xmlContent = generateXMLContent();
-            const filename = 'troubleshooting_guide.xml';
-            const description = 'Troubleshooting Guide XML';
+            const filename = 'my_database.xml';
+            const description = 'my_database XML';
 
             const gistData = {
                 description: description,
@@ -716,7 +694,7 @@
                 showOutput("تم تحميل البينات من السيرفر");
             } catch (error) {
                 console.error('Error loading from specific Gist:', error);
-                showOutput('فشل في تحميل البيانات من Gist المحدد. راجع وحدة التحكم للحصول على التفاصيل.');
+                showOutput('فشل في تحميل البيانات من Gist المحدد. راجع وحدة التحكم للحصول على التفصيل.');
             }
         }
 
@@ -740,10 +718,19 @@
             const outputMessage = document.getElementById('outputMessage');
             outputMessage.textContent = message;
             outputArea.classList.remove('hidden');
+            
+            // إضافة هذا السطر لإخفاء الرسالة بعد 4 ثواني
+            setTimeout(hideOutput, 4000);
+        }
+
+        // إضافة هذه الدالة الجديدة
+        function hideOutput() {
+            const outputArea = document.getElementById('outputArea');
+            outputArea.classList.add('hidden');
         }
 
         function generateXMLContent() {
-            let xmlContent = '<?xml version="1.0" encoding="UTF-8"?>\n<troubleshooting_guide>\n';
+            let xmlContent = '<?xml version="1.0" encoding="UTF-8"?>\n<my_database>\n';
             
             document.querySelectorAll('#groups > div').forEach(group => {
                 const groupTitle = group.querySelector('input').value;
@@ -754,13 +741,13 @@
                     xmlContent += `    <section>\n      <title>${escapeXML(sectionTitle)}</title>\n`;
                     
                     section.querySelectorAll('ol > li').forEach(step => {
-                        const stepDescription = step.querySelector('input').value;
+                        const stepDescription = step.querySelector('textarea').value;
                         const commandBox = step.querySelector('.command-box');
                         const linkBox = step.querySelector('.link-box');
                         const codeBlock = step.querySelector('.code-block');
                         const imageBox = step.querySelector('.image-box');
                         
-                        xmlContent += `      <step>\n        <description>${escapeXML(serializeStyledContent(stepDescription))}</description>\n`;
+                        xmlContent += `      <step>\n        <description>${escapeXML(stepDescription)}</description>\n`;
                         
                         if (linkBox) {
                             const link = linkBox.querySelector('a').href;
@@ -768,12 +755,12 @@
                         }
                         
                         if (codeBlock) {
-                            const code = codeBlock.querySelector('code').textContent;
+                            const code = codeBlock.querySelector('textarea').value;
                             xmlContent += `        <code_block>${escapeXML(code)}</code_block>\n`;
                         }
                         
                         if (commandBox) {
-                            const command = commandBox.querySelector('input').value;
+                            const command = commandBox.querySelector('textarea').value;
                             if (command) {
                                 xmlContent += `        <command>${escapeXML(command)}</command>\n`;
                             }
@@ -793,8 +780,148 @@
                 xmlContent += `  </group>\n`;
             });
             
-            xmlContent += '</troubleshooting_guide>';
+            xmlContent += '</my_database>';
             return xmlContent;
+        }
+
+        function saveToXMLFile() {
+            const xmlContent = generateXMLContent();
+            const blob = new Blob([xmlContent], { type: 'text/xml' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            
+            // إنشاء اسم الملف مع التاريخ والوقت
+            const now = new Date();
+            const fileName = `my_database_${now.getFullYear()}-${(now.getMonth() + 1).toString().padStart(2, '0')}-${now.getDate().toString().padStart(2, '0')}_${now.getHours().toString().padStart(2, '0')}-${now.getMinutes().toString().padStart(2, '0')}.xml`;
+            
+            a.download = fileName;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            showOutput(`تم استخراج البيانات إلى ملف XML باسم ${fileName}`);
+        }
+
+        function browseFile(button) {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = 'image/*'; // قبول الصور فقط
+            input.onchange = function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(event) {
+                        const imageUrl = event.target.result;
+                        addImage(button, imageUrl, file.name);
+                    };
+                    reader.readAsDataURL(file);
+                }
+            };
+            input.click();
+        }
+
+        function loadFromXMLFile() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.xml';
+            input.onchange = function(event) {
+                const file = event.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const xmlContent = e.target.result;
+                        parseAndLoadXML(xmlContent);
+                    };
+                    reader.readAsText(file);
+                }
+            };
+            input.click();
+        }
+
+        function parseAndLoadXML(xmlContent) {
+            const parser = new DOMParser();
+            const xmlDoc = parser.parseFromString(xmlContent, "text/xml");
+            
+            if (xmlDoc.getElementsByTagName("parsererror").length > 0) {
+                showOutput("XML غير صالح في الملف المحدد");
+                return;
+            }
+            
+            // Clear existing groups
+            document.getElementById('groups').innerHTML = '';
+            groupCount = 0;
+
+            // Parse and add groups, sections, and steps
+            const groups = xmlDoc.getElementsByTagName('group');
+            for (let group of groups) {
+                const groupTitle = group.getElementsByTagName('title')[0].textContent;
+                addGroup(groupTitle);
+                const sections = group.getElementsByTagName('section');
+                for (let section of sections) {
+                    const sectionTitle = section.getElementsByTagName('title')[0].textContent;
+                    addSection(`group-${groupCount}`, sectionTitle);
+                    const steps = section.getElementsByTagName('step');
+                    const sectionElement = document.querySelector(`#group-${groupCount} .sections section:last-child`);
+                    for (let step of steps) {
+                        const description = deserializeStyledContent(step.getElementsByTagName('description')[0].innerHTML);
+                        const command = step.getElementsByTagName('command')[0]?.textContent || '';
+                        const link = step.getElementsByTagName('link')[0]?.textContent || '';
+                        const codeBlock = step.getElementsByTagName('code_block')[0]?.textContent || '';
+                        const imageUrl = step.getElementsByTagName('image')[0]?.textContent || '';
+                        addStep(sectionElement.querySelector('button'), description, command, link, codeBlock, imageUrl);
+                    }
+                }
+            }
+            
+            updateGroupNavigation();
+            const firstGroup = document.querySelector('.group-page');
+            if (firstGroup) {
+                showGroup(firstGroup.id);
+            }
+            
+            showOutput("تم تحميل البيانات من ملف XML");
+        }
+
+        function saveToXMLFile() {
+            const xmlContent = generateXML();
+            const blob = new Blob([xmlContent], { type: 'text/xml' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            
+            // إنشاء اسم الملف مع التاريخ والوقت
+            const now = new Date();
+            const fileName = `my_database_${now.getFullYear()}-${(now.getMonth() + 1).toString().padStart(2, '0')}-${now.getDate().toString().padStart(2, '0')}_${now.getHours().toString().padStart(2, '0')}-${now.getMinutes().toString().padStart(2, '0')}.xml`;
+            
+            a.download = fileName;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            showOutput(`تم استخراج البيانات إلى ملف XML باسم ${fileName}`);
+        }
+
+        function addImage(button, imageUrl, fileName = '') {
+            const step = button.closest('li');
+            const imageHtml = `
+                <div class="image-box bg-gray-100 p-2 rounded-lg mb-2">
+                    <img src="${imageUrl}" alt="صورة توضيحية" class="w-full h-auto cursor-pointer" onclick="showImagePopup('${imageUrl}')">
+                    <p class="mt-2">${fileName} <button onclick="copyFilePath('${imageUrl}')" class="bg-blue-500 text-white text-xs px-2 py-1 rounded hover:bg-blue-600 transition duration-300 ease-in-out">نسخ المسار</button></p>
+                    <button onclick="removeImage(this)" class="text-red-500 hover:text-red-700 mt-2">إزالة الصورة</button>
+                </div>
+            `;
+            step.insertAdjacentHTML('beforeend', imageHtml);
+            updateXML();
+        }
+
+        function copyFilePath(path) {
+            navigator.clipboard.writeText(path).then(() => {
+                alert('تم نسخ مسار الصورة إلى الحافظة!');
+            }).catch(err => {
+                console.error('فشل في نسخ المسار: ', err);
+                alert('فشل في نسخ المسار. يرجى المحاولة مرة أخرى.');
+            });
         }
         function serializeStyledContent(content) {
             const tempDiv = document.createElement('div');
@@ -816,7 +943,7 @@
         }
 
         function generateXML() {
-            let xmlContent = '<?xml version="1.0" encoding="UTF-8"?>\n<troubleshooting_guide>\n';
+            let xmlContent = '<?xml version="1.0" encoding="UTF-8"?>\n<my_database>\n';
             
             document.querySelectorAll('#groups > div').forEach(group => {
                 const groupTitle = group.querySelector('input').value;
@@ -827,7 +954,7 @@
                     xmlContent += `    <section>\n      <title>${escapeXML(sectionTitle)}</title>\n`;
                     
                     section.querySelectorAll('ol > li').forEach(step => {
-                        const stepDescription = step.querySelector('input').value;
+                        const stepDescription = step.querySelector('textarea').value;
                         const commandBox = step.querySelector('.command-box');
                         const linkBox = step.querySelector('.link-box');
                         const codeBlock = step.querySelector('.code-block');
@@ -841,12 +968,12 @@
                         }
                         
                         if (codeBlock) {
-                            const code = codeBlock.querySelector('code').textContent;
+                            const code = codeBlock.querySelector('textarea').value;
                             xmlContent += `        <code_block>${escapeXML(code)}</code_block>\n`;
                         }
                         
                         if (commandBox) {
-                            const command = commandBox.querySelector('input').value;
+                            const command = commandBox.querySelector('textarea').value;
                             if (command) {
                                 xmlContent += `        <command>${escapeXML(command)}</command>\n`;
                             }
@@ -866,7 +993,7 @@
                 xmlContent += `  </group>\n`;
             });
             
-            xmlContent += '</troubleshooting_guide>';
+            xmlContent += '</my_database>';
             
             return xmlContent;
         }
