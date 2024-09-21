@@ -507,19 +507,24 @@
             }
         }
 
-        function addImage(button) {
-            const imageUrl = prompt("أدخل رابط الصورة:");
-            if (imageUrl) {
-                const imageHtml = `
-                    <div class="image-box bg-gray-100 p-2 rounded-lg mb-2">
-                        <img src="${imageUrl}" alt="صورة توضيحية" class="w-full h-auto cursor-pointer" onclick="showImagePopup('${imageUrl}')">
-                        <button onclick="removeImage(this)" class="text-red-500 hover:text-red-700 mt-2">إزالة الصورة</button>
-                    </div>
-                `;
-                button.closest('li').insertAdjacentHTML('beforeend', imageHtml);
-                updateXML();
-            }
-        }
+        function addImage(button, imageUrl = '') {
+    if (!imageUrl) {
+        imageUrl = prompt("أدخل رابط الصورة:");
+    }
+    if (imageUrl) {
+        const imageHtml = `
+            <div class="image-box bg-gray-100 p-2 rounded-lg mb-2">
+                <img src="${imageUrl}" alt="صورة توضيحية" class="w-full h-auto cursor-pointer" onclick="showImagePopup('${imageUrl}')">
+                <p class="mt-2">
+                    <button onclick="copyFilePath('${imageUrl}')" class="bg-blue-500 text-white text-xs px-2 py-1 rounded hover:bg-blue-600 transition duration-300 ease-in-out">نسخ المسار</button>
+                </p>
+                <button onclick="removeImage(this)" class="text-red-500 hover:text-red-700 mt-2">إزالة الصورة</button>
+            </div>
+        `;
+        button.closest('li').insertAdjacentHTML('beforeend', imageHtml);
+        updateXML();
+    }
+}
 
         function removeImage(button) {
             button.closest('.image-box').remove();
@@ -902,18 +907,7 @@
             showOutput(`تم استخراج البيانات إلى ملف XML باسم ${fileName}`);
         }
 
-        function addImage(button, imageUrl, fileName = '') {
-            const step = button.closest('li');
-            const imageHtml = `
-                <div class="image-box bg-gray-100 p-2 rounded-lg mb-2">
-                    <img src="${imageUrl}" alt="صورة توضيحية" class="w-full h-auto cursor-pointer" onclick="showImagePopup('${imageUrl}')">
-                    <p class="mt-2">${fileName} <button onclick="copyFilePath('${imageUrl}')" class="bg-blue-500 text-white text-xs px-2 py-1 rounded hover:bg-blue-600 transition duration-300 ease-in-out">نسخ المسار</button></p>
-                    <button onclick="removeImage(this)" class="text-red-500 hover:text-red-700 mt-2">إزالة الصورة</button>
-                </div>
-            `;
-            step.insertAdjacentHTML('beforeend', imageHtml);
-            updateXML();
-        }
+      
 
         function copyFilePath(path) {
             navigator.clipboard.writeText(path).then(() => {
